@@ -1,5 +1,0 @@
-Mozna wykorzystac:
-
-ResourcesPlugin.getWorkspace().get
-Platform.getAdapterManager().
-Platform.getBundle("Plugin_hello_world");

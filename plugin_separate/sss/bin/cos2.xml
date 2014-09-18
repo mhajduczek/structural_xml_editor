@@ -1,9 +1,0 @@
-<?xml version="1.1" encoding="ISO-8859-1"?>
-<!DOCTYPE note SYSTEM "note.dtd">
-<outer> 
-	<tag>
-		<inner attr="val">tekst<cos/>test2 </inner>
-		<inner2 imie="Jan" nazwisko="Kowalski"/>
-	</tag>
-	<tag2 name="Lisa">Maria</tag2>
-</outer>
