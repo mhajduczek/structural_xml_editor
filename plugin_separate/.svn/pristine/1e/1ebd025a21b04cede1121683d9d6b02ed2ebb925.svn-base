@@ -1,0 +1,269 @@
+package com.hajduczek.xmleditor;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.DOMConfiguration;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
+import org.w3c.dom.ls.LSSerializer;
+
+import com.hajduczek.xmleditor.utils.Schema;
+import com.hajduczek.xmleditor.utils.SchemaType;
+
+public class XMLParser {
+
+	public static XmlDocument parse(String xml, String[] schemaDirs, Schema schema) throws Exception {
+		// String xml =
+		// "<xml><tag><inner attr=\"val\">tekst</inner><inner2 imie=\"Jan\" nazwisko=\"Kowalski\"/></tag><tag2 name=\"Lisa\">Maria</tag2></xml>";
+		// generateDOTGraph(xml);
+		long startTime = System.currentTimeMillis();
+		Document doc = null;
+		{
+			DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = fact.newDocumentBuilder();
+			// ustawienie zewnetrznego folderu z ktorego ma byc pobierane DTD
+			// TODO: w preferencjach projektu ma byc istawiane
+			// workingDirectoryURI!!!
+
+			builder.setEntityResolver(new MyEntityResolver(schemaDirs));
+
+			/*
+			 * new EntityResolver() { public InputSource resolveEntity(String
+			 * publicId, String systemId) throws SAXException, IOException { if
+			 * (systemId != null && systemId.startsWith("file:/")) { URI
+			 * workingDirectoryURI = new
+			 * File("C:\\Users\\hajdi\\workspace_czysty\\plugin_separate\\dtd"
+			 * ).toURI(); URI workingFile;
+			 * 
+			 * try { URI currentJavaWorkingDirectory = new
+			 * File(System.getProperty("user.dir")).toURI(); // Construction new
+			 * File(new URI(String)).toURI() is used to be sure URI has correct
+			 * representation without redundant '/' workingFile =
+			 * convertToNewWorkingDirectory(currentJavaWorkingDirectory,
+			 * workingDirectoryURI, new File(new URI(systemId)).toURI()); return
+			 * new InputSource(workingFile.toString()); } catch
+			 * (URISyntaxException ex) { ex.printStackTrace(); } } return null;
+			 * } });
+			 */
+
+			InputStream is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+
+			doc = builder.parse(is);
+			is.close();
+		}
+		Map<String, ArrayList<Integer>> references = new HashMap<String, ArrayList<Integer>>();
+
+		XmlDocument xmlDocument = new XmlDocument();
+
+		XmlTag tag = DFS(doc, doc.getDocumentElement(), xmlDocument, 0, schema);
+		// System.out.println("Referencje: " + references);
+		xmlDocument.setChilds(tag.getChilds());
+		// xmlDocument.setAttributes(tag.getAttributes());
+		xmlDocument.setRootElement(tag);
+		xmlDocument.setEncoding(doc.getXmlEncoding());
+		xmlDocument.setVersion(doc.getXmlVersion());
+
+		System.out.println(xmlDocument);
+		System.out.println(xmlDocument.toDOTString());
+
+		String svg = GraphVizCaller.callGraphViz(xmlDocument.toDOTString());
+
+		SVGUtil.parseSVG(svg, xmlDocument);
+		System.out.println(xmlDocument);
+
+		// find edges START
+
+		if (schema == null || schema.getType() == null || schema.getType() == SchemaType.NO_SCHEMA) {
+			for (XmlTag xmlTag : xmlDocument.getChildsMap().values()) {
+				for (String s : xmlTag.getReferences()) {
+					if (references.containsKey(s)) {
+						references.get(s).add(xmlTag.getId());
+					} else {
+						references.put(s, new ArrayList<Integer>());
+						references.get(s).add(xmlTag.getId());
+					}
+				}
+			}
+			Map<Integer, Integer> edges = new HashMap<Integer, Integer>();
+
+			for (ArrayList<Integer> refs : references.values()) {
+				edges.put(refs.get(0), refs.get(1));
+			}
+			System.out.println("edges: " + edges);
+
+			xmlDocument.setEdges(edges);
+		} else if (schema.getType() == SchemaType.XSD_SCHEMA || schema.getType() == SchemaType.DTD_SCHEMA) {
+
+			Map<Integer, Integer> edges = new HashMap<Integer, Integer>();
+
+			for (XmlTag xmlTag : xmlDocument.getChildsMap().values()) {
+				for (String s : xmlTag.getRefs().values()) {
+					// TODO: poszukaj ID tagu, ktory ma atrybut ID.equals(s)
+					for (XmlTag innerXmlTag : xmlDocument.getChildsMap().values()) {// WYSOCE
+																					// NIE
+																					// OPTYMALNE!
+						if (innerXmlTag != null && innerXmlTag.getAttributes() != null) {
+							for (Attribute attr : innerXmlTag.getAttributes()) {
+								if ("ID".equalsIgnoreCase(attr.getName()) && s.equals(attr.getValue())) {
+									edges.put(xmlTag.getId(), innerXmlTag.getId());
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			xmlDocument.setEdges(edges);
+		}
+
+		// find edges END
+
+		System.out.println("XMLParser.parse duration: " + ((System.currentTimeMillis() - startTime) / 1000) + "s");
+		return xmlDocument;
+	}
+
+	public static XmlTag DFS(Document document, Node node, XmlDocument xmlDocument, int positionInParent, Schema schema) {
+		Element element = (Element) node;
+		XmlTag tag = new XmlTag(positionInParent, node.getNodeName());
+		xmlDocument.getChildsMap().put(tag.getId(), tag);
+		// workaround by svgparser się nie wysypał
+		xmlDocument.getChildsMap().put(tag.getChilds().get(0).getId(), tag.getChilds().get(0));
+		tag.setSchemaType(schema.getType());
+
+		for (int i = 0; i < node.getChildNodes().getLength(); ++i) {
+			int nodeType = node.getChildNodes().item(i).getNodeType();
+			if (nodeType == Node.ELEMENT_NODE) {
+				tag.getChilds().add(DFS(document, node.getChildNodes().item(i), xmlDocument, i, schema));
+			} else if (nodeType == Node.TEXT_NODE) {
+				String textContent = node.getChildNodes().item(i).getTextContent();
+				if (textContent == null) {
+					continue;
+				}
+				String trimmedTextContent = textContent.trim();
+				if (textContent.length() > 0 && trimmedTextContent.length() > 0) {
+					String firstCharOrg = textContent.substring(0, 1);
+					String firstCharTrim = trimmedTextContent.substring(0, 1);
+					if (firstCharOrg.equals(firstCharTrim)) {
+						TextNode textNode = new TextNode(i, trimmedTextContent);
+						tag.addTextElement(textNode);
+					}
+				}
+			}
+		}
+
+		buildComponent(tag, element, schema);
+		return tag;
+	}
+
+	public static void buildComponent(XmlTag tag, Element element, Schema schema) {
+		NamedNodeMap namedNodeMap = element.getAttributes();
+
+		for (int i = 0; i < namedNodeMap.getLength(); ++i) {
+			if ((schema == null || schema.getType() == SchemaType.NO_SCHEMA)
+					&& "ref".equals(namedNodeMap.item(i).getNodeName())) {
+				String refs = namedNodeMap.item(i).getNodeValue();
+				String[] splitedRefs = refs.split(",");
+				for (String s : splitedRefs) {
+					tag.getReferences().add(s);
+				}
+			} else {
+				String nodeName = namedNodeMap.item(i).getNodeName();
+				String nodeValue = namedNodeMap.item(i).getNodeValue();
+				if (schema != null
+						&& (schema.getType() == SchemaType.XSD_SCHEMA || schema.getType() == SchemaType.DTD_SCHEMA)
+						&& isRef(nodeName, schema)) {
+					tag.getRefs().put(nodeName, nodeValue);
+				} else {
+					tag.getAttributes().add(new Attribute(nodeName, nodeValue));
+				}
+			}
+		}
+	}
+
+	private static boolean isRef(String nodeName, Schema schema) {
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder;
+			builder = factory.newDocumentBuilder();
+			InputStream is = new ByteArrayInputStream(schema.getContent().getBytes("UTF-8"));
+			Document doc = builder.parse(is);
+
+			NodeList nodeList = doc.getElementsByTagName("xs:attribute");
+
+			boolean firstCondition = false;
+			boolean secondCondition = false;
+
+			for (int i = 0; i < nodeList.getLength(); ++i) {
+				Node node = nodeList.item(i);
+				NamedNodeMap namedNodeMap = node.getAttributes();
+				for (int j = 0; j < namedNodeMap.getLength(); ++j) {
+					if ("name".equals(namedNodeMap.item(j).getNodeName())
+							&& nodeName.equals(namedNodeMap.item(j).getNodeValue())) {
+						firstCondition = true;
+					}
+					if ("type".equals(namedNodeMap.item(j).getNodeName())
+							&& ("xs:idref".equalsIgnoreCase(namedNodeMap.item(j).getNodeValue()) || "xs:idrefs"
+									.equalsIgnoreCase(namedNodeMap.item(j).getNodeValue()))) {
+						secondCondition = true;
+					}
+					System.out.println(namedNodeMap.item(j).getNodeValue());
+				}
+				if (firstCondition && secondCondition) {
+					return true;
+				} else {
+					firstCondition = false;
+					secondCondition = false;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static String prettyPrintWithDOM3LS(String xml) {
+		try {
+			DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = fact.newDocumentBuilder();
+			InputStream is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+			Document document = builder.parse(is);
+			DOMImplementation domImplementation = document.getImplementation();
+			if (domImplementation.hasFeature("LS", "3.0") && domImplementation.hasFeature("Core", "2.0")) {
+				DOMImplementationLS domImplementationLS = (DOMImplementationLS) domImplementation.getFeature("LS",
+						"3.0");
+				LSSerializer lsSerializer = domImplementationLS.createLSSerializer();
+				DOMConfiguration domConfiguration = lsSerializer.getDomConfig();
+				if (domConfiguration.canSetParameter("format-pretty-print", Boolean.TRUE)) {
+					lsSerializer.getDomConfig().setParameter("format-pretty-print", Boolean.TRUE);
+					LSOutput lsOutput = domImplementationLS.createLSOutput();
+					lsOutput.setEncoding("UTF-8");
+					StringWriter stringWriter = new StringWriter();
+					lsOutput.setCharacterStream(stringWriter);
+					lsSerializer.write(document, lsOutput);
+					return stringWriter.toString();
+				} else {
+					throw new RuntimeException("DOMConfiguration 'format-pretty-print' parameter isn't settable.");
+				}
+			} else {
+				throw new RuntimeException("DOM 3.0 LS and/or DOM 2.0 Core not supported.");
+			}
+		} catch (Exception e) {
+			return xml;
+		}
+	}
+}

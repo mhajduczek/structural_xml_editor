@@ -1,0 +1,17 @@
+package com.hajduczek.xmleditor.mouse;
+
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
+public class AttributeTablePopUpMenu extends JPopupMenu {
+    private static final long serialVersionUID = -6524284223481340575L;
+	private JMenuItem addItem;
+	private JMenuItem deleteItem;
+    
+	public AttributeTablePopUpMenu(){
+		this.addItem = new JMenuItem("Add new attribute");
+        add(addItem);
+        this.deleteItem = new JMenuItem("Delete attribute");
+        add(deleteItem);
+    }
+}

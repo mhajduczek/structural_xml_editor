@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="Sample Table of Contents">
+	<topic label="Installation"  href="html/1_installation.html"> 
+	</topic>
+	<topic label="Configuration"  href="html/2_configuration.html"> 
+	</topic>
+	<topic label="Usage" href="html/3_usage.html">
+		<topic label="Perspective" href="html/perspective.html"/> 
+		<topic label="Editor View" href="html/editor.html"/>
+		<topic label="GraphOutline view" href="html/outline.html"/>
+		<topic label="Preference view" href="html/preference.html"/>
+	</topic>
+</toc>

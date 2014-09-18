@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;sss/src/cos.cos&apos; to &apos;cos.mpe&apos;" description="Rename resource &apos;cos.cos&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/cos.cos" name="cos.mpe" stamp="1363719669293" updateReferences="true"/>
+</session>

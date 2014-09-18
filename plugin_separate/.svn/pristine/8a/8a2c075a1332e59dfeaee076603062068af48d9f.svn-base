@@ -1,0 +1,27 @@
+package com.hajduczek.xmleditor.utils;
+
+public class Schema {
+	private SchemaType type;
+	private String content;
+	
+	public Schema(SchemaType type, String content) {
+		this.type = type;
+		this.content = content;
+	}
+	
+	public SchemaType getType() {
+		return type;
+	}
+	
+	public String getContent() {
+		return content;
+	}
+	
+	public void setContent(String content) {
+		this.content = content;
+	}
+	
+	public void setType(SchemaType type) {
+		this.type = type;
+	}
+}

@@ -1,0 +1,8 @@
+package com.hajduczek.xmleditor;
+
+import java.io.Serializable;
+import java.util.List;
+
+public interface XmlElement extends Serializable {
+	public List<Attribute> getAttributes();
+}

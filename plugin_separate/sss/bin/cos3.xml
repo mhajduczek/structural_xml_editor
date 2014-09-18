@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<outer12345555555555555 enter_nameeee="enter_value" ref="outer12345555555555555tag2,tag2outer12345555555555555">
+ <tag3 ref="c,tag3innerin,tag2tag3,tag2tag3,tag3innerin">
+  <inner attr="val" ref="a,inner2inner,inner2inner">
+   <innerin ref="c,tag3innerin,tag3innerin">
+   </innerin>
+  </inner>
+  <inner2 imie="Jan" nazwisko="Kowalski" ref="a,inner2inner,inner2inner">
+  </inner2>
+ </tag3>
+ <tag2 id="test" name="Lisa" ref="outer12345555555555555tag2,tag2tag3,tag2outer12345555555555555,tag2tag3">
+ </tag2>
+</outer12345555555555555>

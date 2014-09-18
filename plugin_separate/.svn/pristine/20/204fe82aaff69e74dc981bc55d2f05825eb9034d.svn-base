@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+<!--glowny widok edytora -->
+   	<extension
+         point="org.eclipse.ui.editors">
+      	<editor
+            name="Structural XML Editor"
+            extensions="xml"
+            icon="icons/xml.gif"
+            contributorClass="com.hajduczek.xmleditor.editors.MultiPageEditorContributor"
+            class="com.hajduczek.xmleditor.editors.MultiPageEditor"
+            id="com.hajduczek.xmleditor.editors.MultiPageEditor">
+      	</editor>
+   	</extension>
+<!--podglad grafu -->   
+   	<extension
+         point="org.eclipse.ui.views">
+      	<category
+            name="Structural XML Editor"
+            id="structuralXmlEditorCategory">
+      	</category>
+      	<view
+        	name="Graph Outline"
+            icon="icons/xml.gif"
+            category="structuralXmlEditorCategory"
+            class="com.hajduczek.xmleditor.views.GraphOutlineView"
+            id="com.hajduczek.xmleditor.views.GraphOutlineView">
+      	</view>
+   	</extension>
+<!--wlasciwosci komponentow grafu --> 
+   	<extension
+			point="org.eclipse.ui.views">
+		<category
+        	name="Structural XML Editor"
+        	id="structuralXmlEditorCategory">
+  		</category>
+		<view
+			class="com.hajduczek.xmleditor.views.ComponentPropertiesView"
+			icon="icons/xml.gif"
+			category="structuralXmlEditorCategory"
+			id="com.hajduczek.xmleditor.views.ComponentPropertiesView"
+			name="Component Properties View">
+		</view>
+	</extension>
+
+<!--window_preferences_page -->	  
+	<extension
+         	point="org.eclipse.ui.preferencePages">
+      	<page
+            name="Structural XML Editor"
+            class="com.hajduczek.xmleditor.preferences.PreferencePage"
+            id="com.hajduczek.xmleditor.preferences.PreferencePage">
+      	</page>
+   </extension>
+   <extension
+         	point="org.eclipse.core.runtime.preferences">
+      	<initializer
+            class="com.hajduczek.xmleditor.preferences.PreferenceInitializer">
+      	</initializer>
+   </extension>
+<!-- project_properties_page -->
+   <extension
+         	point="org.eclipse.ui.propertyPages">
+      <page
+            name="Structural XML Editor"
+            class="com.hajduczek.xmleditor.properties.ProjectPropertyPage"
+            id="com.hajduczek.xmleditor.properties.ProjectPropertyPage">
+         	<enabledWhen>
+	            <instanceof
+	                  value="org.eclipse.core.resources.IProject">
+	            </instanceof>
+         	</enabledWhen>
+      </page>
+   </extension>
+   <!-- zbior widokow jako perspektywa -->
+	<extension point="org.eclipse.ui.perspectives">
+	   <perspective
+	         name="Structural Xml Editor"
+	         icon="icons/xml.gif"
+	         class="com.hajduczek.xmleditor.Perspective"
+	         id="com.hajduczek.xmleditor.Perspective">
+	   </perspective>
+	</extension>
+ <extension
+       point="org.eclipse.ui.bindings">
+ </extension>
+ <extension
+       point="org.eclipse.ui.commands">
+ </extension>
+</plugin>
+
+   <!--extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            name="Structural XML Editor"
+            id="plugin_hello_world">
+      </category>
+      <wizard
+            name="Multi-page Editor file"
+            icon="icons/xml.gif"
+            category="plugin_hello_world"
+            class="plugin_hello_world.wizards.SampleNewWizard"
+            id="plugin_hello_world.wizards.SampleNewWizard">
+      </wizard>
+   </extension-->
+      <!--extension
+         point="org.eclipse.ui.editors">
+      <category
+            name="Structural XML Editor"
+            id="dupa_jas">
+      </category>
+      <view
+            name="Dupa jas"
+            icon="icons/sample.gif"
+            category="dupa_jas"
+            class="dupa_jas.views.SampleView"
+            id="dupa_jas.views.SampleView">
+      </view>
+   </extension-->
+	<!--extension
+		point="org.eclipse.ui.views">
+		<category
+        	name="Structural XML Editor"
+        	id="test">
+  		</category>
+		<view
+			class="org.eclipse.ui.views.contentoutline.MyContentOutline"
+			icon="icons/xml.gif"
+			id="org.eclipse.ui.views.contentoutline.MyContentOutline"
+			name="Outline View">
+		</view>
+	</extension-->

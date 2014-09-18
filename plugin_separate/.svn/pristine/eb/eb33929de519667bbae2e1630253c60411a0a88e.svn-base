@@ -1,0 +1,119 @@
+package plugin_hello_world;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+
+public class XMLParser {
+	
+	
+	public static XmlDocument parse(String xml) throws Exception {
+		//String xml = "<xml><tag><inner attr=\"val\">tekst</inner><inner2 imie=\"Jan\" nazwisko=\"Kowalski\"/></tag><tag2 name=\"Lisa\">Maria</tag2></xml>";
+		//generateDOTGraph(xml);
+		long startTime = System.currentTimeMillis();
+		Document doc = null;
+		{
+		DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = fact.newDocumentBuilder();
+		
+		InputStream is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+		
+		doc = builder.parse(is);
+		is.close();
+		}
+		Map<String, List<String>> references = new HashMap<String, List<String>>();
+		
+		XmlDocument xmlDocument = new XmlDocument();
+		
+		XmlTag tag = DFS(doc, doc.getDocumentElement(), xmlDocument, references);
+		System.out.println("Referencje: " + references);
+		xmlDocument.setChilds(tag.getChilds());
+		xmlDocument.setAttributes(tag.getAttributes());
+		
+		System.out.println(xmlDocument);
+		System.out.println(xmlDocument.toDOTString());
+		
+		String svg = GraphVizCaller.callGraphViz(xmlDocument.toDOTString());
+		
+		//SVGParser s = new SVGParser(svg, xmlDocument);
+		//s.parse();
+		SVGUtil.parseSVG(svg, xmlDocument);
+		System.out.println(xmlDocument);
+		
+		System.out.println("XMLParser.parse duration: " + ((System.currentTimeMillis()-startTime)/1000) + "s");
+		return xmlDocument;
+	}
+	
+	
+	public static XmlTag DFS(Document document, Node node, XmlDocument xmlDocument, Map<String, List<String>> references) {
+		Element element = (Element) node;
+		XmlTag tag = new XmlTag();
+		tag.setName(node.getNodeName());
+		xmlDocument.getChildsMap().put(tag.getId(), tag);
+		
+		for(int i=0; i<node.getChildNodes().getLength(); ++i){
+			int nodeType = node.getChildNodes().item(i).getNodeType();
+			if (nodeType == Node.ELEMENT_NODE) {
+				tag.getChilds().add(DFS(document, node.getChildNodes().item(i), xmlDocument, references));
+			} else if (nodeType == Node.TEXT_NODE) {
+				tag.setTextValue(node.getTextContent());
+			} 
+			/*
+			if (node.getAttributes() != null) {
+				
+				for (Attribute attr : tag.getAttributes()) {
+					if ("id".equals(attr.getName())) {
+						idAttr = attr.getValue();
+					}
+					if ("ref".equals(attr.getName())) {
+						if (references.containsKey(idAttr)) {
+							List<String> targets = references.get(idAttr);
+							targets.add(attr.getValue());
+						} else {
+							List<String> targets = new ArrayList<String>();
+							targets.add(attr.getValue());
+							references.put(idAttr, targets);
+						}
+					}
+				}
+			}*/
+		}
+		
+		buildComponent(tag, element, references);
+		return tag;
+	}
+	
+	public static void buildComponent(XmlTag tag, Element element, Map<String, List<String>> references) {
+		 NamedNodeMap namedNodeMap = element.getAttributes();
+		 String idAttr = null;
+		 for (int i=0; i<namedNodeMap.getLength(); ++i) {
+			 tag.getAttributes().add(new Attribute(namedNodeMap.item(i).getNodeName(), namedNodeMap.item(i).getNodeValue()));
+			 //Wyszukiwanie referencji
+			 //TODO: w przypadku referencji ref="id1,id2" split na podstawie , dorobic!
+			 if ("id".equals(namedNodeMap.item(i).getNodeName())) {
+				 idAttr = namedNodeMap.item(i).getNodeValue();
+			 }
+			 if ("ref".equals(namedNodeMap.item(i).getNodeName())) {
+					if (references.containsKey(idAttr)) {
+						List<String> targets = references.get(idAttr);
+						targets.add(namedNodeMap.item(i).getNodeValue());
+					} else {
+						List<String> targets = new ArrayList<String>();
+						targets.add(namedNodeMap.item(i).getNodeValue());
+						references.put(idAttr, targets);
+					}
+				}
+		 }
+	}
+}

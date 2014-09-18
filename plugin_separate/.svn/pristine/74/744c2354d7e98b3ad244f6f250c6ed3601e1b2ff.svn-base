@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Structural XML Editor"
+            extensions="xml"
+            icon="icons/xml.gif"
+            contributorClass="plugin_hello_world.editors.MultiPageEditorContributor"
+            class="plugin_hello_world.editors.MultiPageEditor"
+            id="plugin_hello_world.editors.MultiPageEditor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            name="Structural XML Editor"
+            id="plugin_hello_world">
+      </category>
+      <wizard
+            name="Multi-page Editor file"
+            icon="icons/xml.gif"
+            category="plugin_hello_world"
+            class="plugin_hello_world.wizards.SampleNewWizard"
+            id="plugin_hello_world.wizards.SampleNewWizard">
+      </wizard>
+   </extension>
+      <extension
+         point="org.eclipse.ui.editors">
+      <category
+            name="Structural XML Editor"
+            id="dupa_jas">
+      </category>
+      <view
+            name="Dupa jas"
+            icon="icons/sample.gif"
+            category="dupa_jas"
+            class="dupa_jas.views.SampleView"
+            id="dupa_jas.views.SampleView">
+      </view>
+   </extension>
+      <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Structural XML Editor"
+            id="xx1">
+      </category>
+      <view
+            name="Graph Outline"
+            icon="icons/xml.gif"
+            category="xx1"
+            class="xx1.views.SampleView"
+            id="xx1.views.SampleView">
+      </view>
+   </extension>
+ 
+   	<extension
+		point="org.eclipse.ui.views">
+		<category
+        	name="Structural XML Editor"
+        	id="test">
+  		</category>
+		<view
+			class="plugin_hello_world.ComponentPropertiesView"
+			icon="icons/xml.gif"
+			id="plugin_hello_world.ComponentPropertiesView"
+			name="Component Properties View">
+		</view>
+	</extension>
+	<extension
+		point="org.eclipse.ui.views">
+		<category
+        	name="Structural XML Editor"
+        	id="test">
+  		</category>
+		<view
+			class="org.eclipse.ui.views.contentoutline.MyContentOutline"
+			icon="icons/xml.gif"
+			id="org.eclipse.ui.views.contentoutline.MyContentOutline"
+			name="Outline View">
+		</view>
+	</extension>
+	   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="Structural XML Editor"
+            class="test.preferences.PreferencePage"
+            id="test.preferences.PreferencePage">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="test.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+</plugin>

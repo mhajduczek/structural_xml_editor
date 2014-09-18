@@ -1,0 +1,32 @@
+package com.hajduczek.xmleditor.mouse;
+
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JTable;
+
+public class PopClickListener extends MouseAdapter {
+    private JTable jTable;
+    
+    public PopClickListener(JTable jTable) {
+    	this.jTable = jTable;
+    }
+	
+	public void mousePressed(MouseEvent e){
+        if (e.isPopupTrigger()) {
+            doPop(e);
+        }
+    }
+
+    public void mouseReleased(MouseEvent e){
+        if (e.isPopupTrigger()) {
+           doPop(e);
+        }
+    }
+
+    private void doPop(MouseEvent e){
+    	
+        AttributeTablePopUpMenu menu = new AttributeTablePopUpMenu();
+        menu.show(e.getComponent(), e.getX(), e.getY());
+    }
+}

@@ -1,0 +1,47 @@
+package com.hajduczek.xmleditor.mouse;
+
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JTable;
+
+public class AttributeTableClickListener extends MouseAdapter {
+    
+	private JTable jTable;
+    private boolean isInTable;
+    private int selectedRow;
+    
+    public AttributeTableClickListener(JTable jTable, boolean isInTable) {
+    	this.jTable = jTable;
+    	this.isInTable = isInTable;
+    }
+	
+    /**
+     * Metoda reaguje na zdarzenie wciśnięcia przycisku myszki.
+     */
+	public void mousePressed(MouseEvent e) { 
+		if (isInTable) {
+			this.selectedRow = this.jTable.rowAtPoint(e.getPoint());
+		}
+	}
+
+	/**
+	 * Metoda reaguje na zdarzenie zwolnienia przycisku myszki.
+	 */
+    public void mouseReleased(MouseEvent e){
+        if (e.isPopupTrigger()) {
+        	showPopupMenu(e);
+        }
+    }
+
+    /**
+     * Metoda wyświetla menu kontekstowe.
+     * 
+     * @param e
+     */
+    private void showPopupMenu(MouseEvent e){
+    	AttributeTablePopUpMenu menu = new AttributeTablePopUpMenu(isInTable, jTable, selectedRow);
+        
+    	menu.show(e.getComponent(), e.getX(), e.getY());
+    }
+}

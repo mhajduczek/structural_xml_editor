@@ -1,0 +1,234 @@
+package com.hajduczek.xmleditor;
+
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class XmlTag implements XmlElement {
+
+	private static final long serialVersionUID = -413894683409074365L;
+	
+	public static final int SPACE_SIZE = 1;
+	
+	private int id;
+	private int x;
+	private int y;
+	private int width;
+	private int height;
+	
+	private List<Attribute> attributes = new ArrayList<Attribute>();
+	private List<XmlTag> childs = new ArrayList<XmlTag>();
+	private String name;
+	private List<TextNode> textElements = new ArrayList<TextNode>();
+	
+	private int positionInParent;
+	
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+	
+	public void vertexPosition(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+		this.x = min(x1, x2, x3, x4);
+		this.y = min(y1, y2, y3, y4);
+		this.width = countRange(x1, x2, x3, x4);
+		this.height = countRange(y1, y2, y3, y4);
+	}
+	
+	private int min(int v1, int v2, int v3, int v4) {
+		int min = v1;
+		if (v2 < min) min = v2;
+		if (v3 < min) min = v3;
+		if (v4 < min) min = v4;
+		return min;
+	}
+	
+	public int countRange(int v1, int v2, int v3, int v4) {
+		List<Integer> valuesList = Arrays.asList(v1, v2, v3, v4);
+		Collections.sort(valuesList);
+		//TODO: albo tak: Math.max(v1,Math.max(v2, Math.max(v3,v4))); ??
+		int range = 0;
+		int min = valuesList.get(0);
+		int max = valuesList.get(3);
+		if (min <= 0 && max <= 0) {
+			range = Math.abs(min) - Math.abs(max);
+		} else if (min >= 0 && max >= 0) {
+			range = max - min;
+		} else if (min <= 0 && max >= 0) {
+			range = max + Math.abs(min);
+		}
+		return range;
+	}
+	
+	public void addOffset(int x, int y) {
+		this.x = this.x + x;
+		this.y = this.y + y;
+	}
+	
+	public int getArea() {
+		return this.x * this.y;
+	}
+	
+	protected XmlTag() {}
+	
+	public XmlTag(int positionInParent, String name) {
+		this.id = IdGenerator.getInstance().getNextId();
+		this.positionInParent = positionInParent;
+		this.name = name;
+		if (name != null) {
+			this.childs.add(new XmlTagName(this));
+		}
+	}
+
+	public List<Attribute> getAttributes() {
+		return attributes;
+	}
+
+	public void setAttributes(List<Attribute> attributes) {
+		this.attributes = attributes;
+	}
+
+	public List<XmlTag> getChilds() {
+		return childs;
+	}
+
+	public void setChilds(List<XmlTag> childs) {
+		this.childs = childs;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<TextNode> getTextElements() {
+		return this.textElements;
+	}
+
+	public void addTextElement(TextNode textElement) {
+		this.textElements.add(textElement);
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	
+	public String info() {
+		return "Tag [id=" + id + ", x=" + x + ", y=" + y + ", width=" + width
+				+ ", height=" + height + ", attributes=" + attributes
+				+ ", childs=" + childs + ", name=" + name + ", textElements="
+				+ textElements + "]";
+	}
+
+	public String toDOTString() {
+		String dot = " subgraph cluster_" + id + " { ";
+		for (XmlTag tag : childs) {
+			dot += tag.toDOTString();
+		}
+		dot += " } ";
+		return dot;
+	}
+	
+	@Override
+	public String toString() {
+		return "";//this.name;
+	}
+	
+	public String toString(int indentation) {
+		StringBuilder result = new StringBuilder();
+		
+		String space = "";
+		if (indentation > 0) {
+			space = new String(new char[indentation]).replace('\0', ' ');
+		}
+		
+		if ((this.childs == null || this.childs.size() == 0) && (this.textElements == null || this.textElements.size() == 0)) {
+			result.append(space + "<"+this.name+" ");
+			if (this.attributes != null && this.attributes.size() > 0) {
+				for (Attribute attr : this.attributes) {
+					result.append(attr.getName() + "=\"" + attr.getValue() + "\" ");
+				}
+			}
+			result.append("/>\n");
+		} else {
+			result.append(space + "<"+this.name+" ");
+			if (this.attributes != null && this.attributes.size() > 0) {
+				for (Attribute attr : this.attributes) {
+					result.append(attr.getName() + "=\"" + attr.getValue() + "\" ");
+				}
+			}
+			if (result.charAt(result.length()-1) == ' ') {
+				result.deleteCharAt(result.length()-1);
+			}
+			result.append(">\n");
+			//START
+			Map<Integer, Object> innerElements = getInnerElementsMap();
+			
+			
+			Integer[] keys = innerElements.keySet().toArray(new Integer[innerElements.size()]);
+			Arrays.sort(keys);
+			
+			boolean firstIterate = true;
+			for (Integer key : keys) {
+				Object innerElement = innerElements.get(key);
+				if (innerElement instanceof String) {
+					if (firstIterate) {
+						result.deleteCharAt(result.length()-1);
+					}
+					result.append(innerElement+"\n");
+				} else if (innerElement instanceof XmlTag) {
+					result.append(((XmlTag)innerElement).toString(indentation + SPACE_SIZE));
+				}
+				firstIterate = false;
+			}
+			//END
+			result.append(space + "</" + this.name + ">\n");
+		}
+		
+		return result.toString();
+	}
+	
+	private Map<Integer, Object> getInnerElementsMap() {
+		Map<Integer, Object> resultMap = new HashMap<Integer, Object>();
+		
+		for (TextNode tn : this.textElements) {
+			resultMap.put(tn.getPositionInParent(), tn.getValue());
+		}
+		for (XmlTag xt : this.childs) {
+			resultMap.put(xt.getPositionInParent(), xt);
+		}
+		
+		return resultMap;
+	}
+
+	public int getPositionInParent() {
+		return positionInParent;
+	}
+
+	public void setPositionInParent(int positionInParent) {
+		this.positionInParent = positionInParent;
+	}
+}

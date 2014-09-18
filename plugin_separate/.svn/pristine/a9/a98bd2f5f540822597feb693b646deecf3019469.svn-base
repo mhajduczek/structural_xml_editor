@@ -1,0 +1,52 @@
+package plugin_hello_world;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
+public class XmlDocument implements XmlElement {
+
+	private static final long serialVersionUID = -1715541008435953204L;
+	private List<XmlTag> childs = new ArrayList<XmlTag>();
+	private Map<Integer, XmlTag> childsMap = new HashMap<Integer, XmlTag>();
+	private List<Attribute> attributes = new ArrayList<Attribute>();
+	
+	public List<Attribute> getAttributes() {
+		return attributes;
+	}
+
+	public void setAttributes(List<Attribute> attributes) {
+		this.attributes = attributes;
+	}
+
+	public List<XmlTag> getChilds() {
+		return childs;
+	}
+
+	public void setChilds(List<XmlTag> childs) {
+		this.childs = childs;
+	}
+	
+	public Map<Integer, XmlTag> getChildsMap() {
+		return childsMap;
+	}
+
+	public void setChildsMap(Map<Integer, XmlTag> childsMap) {
+		this.childsMap = childsMap;
+	}
+
+	@Override
+	public String toString() {
+		return "XmlDocument [childs=" + childs + "]";
+	}
+	
+	public String toDOTString() {
+		String dot = "digraph G { ";
+		for (XmlTag tag : childs) {
+			dot += tag.toDOTString();
+		}
+		dot += "}";
+		return dot;
+	}
+}

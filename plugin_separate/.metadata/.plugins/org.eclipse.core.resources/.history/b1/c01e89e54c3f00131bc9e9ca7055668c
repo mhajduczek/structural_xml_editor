@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<note xmlns="http://www.w3schools.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="note2.xsd">
+ <to od_kogo="from1">
+ </to>
+ <from id="from1">
+ </from>
+ <heading>
+ </heading>
+ <body>
+ </body>
+</note>
+ 
